@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 """Stage 1: Sigmoid function
 
@@ -46,6 +47,23 @@ Objectives
 
 1 - Implement the fit_mse method
 2 - Implement the predict method
+
+"""
+
+"""Stage 3: Log-Loss
+
+Description
+
+The Mean squared error cost function produces a non-convex graph with the local 
+and global minimums when applied to a sigmoid function. If a weight value is 
+close to a local minimum, gradient descent minimizes the cost function by the 
+local (not global) minimum. This presents grave limitations to the Mean squared 
+error cost function if we apply it to binary classification tasks. The Log-loss 
+cost function may help to overcome this issue.
+
+Objectives
+
+Implement the fit_log_loss method in class CustomLogisticRegression
 
 """
 
@@ -131,6 +149,43 @@ class CustomLogisticRegression:
 
         self.coef_ = coef_
 
+    def fit_log_loss(self, X_train, y_train):
+
+        if self.fit_intercept:
+            count = len(X_train.columns.tolist()) + 1
+        else:
+            count = len(X_train.columns.tolist())
+
+        # Initialize the weights
+        coef_ = np.zeros(count)
+
+        # Determine number of rows
+        N = len(X_train)
+
+        # Training loop
+        for _ in range(self.n_epoch):
+            i = 0
+            for _, row in X_train.iterrows():
+                y_hat = self.predict_proba(row, coef_)
+                # Update all weights
+                if self.fit_intercept:
+                    ind = 1
+                    for value in row:
+                        coef_[ind] = coef_[ind] - (self.l_rate * (
+                                        y_hat - y_train.iloc[i]) * value) / N
+                        ind = ind + 1
+                    coef_[0] = coef_[0] - (self.l_rate * (
+                                    y_hat - y_train.iloc[i])) / N
+                else:
+                    ind = 0
+                    for value in row:
+                        coef_[ind] = coef_[ind] - (self.l_rate * (
+                                        y_hat - y_train.iloc[i]) * value) / N
+                        ind = ind + 1
+                i = i + 1
+
+        self.coef_ = coef_
+
     def predict(self, X_test, cut_off=0.5):
         """After the optimal weight values have been determined using the
         self.fit_mse() method and the <self.coef_> has been updates, output the
@@ -142,4 +197,3 @@ class CustomLogisticRegression:
         predictions[predictions >= cut_off] = 1
         predictions[predictions < cut_off] = 0
         return predictions
-

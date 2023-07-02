@@ -147,8 +147,9 @@ class CustomLogisticRegression:
                                         y_hat - y_train.iloc[i]) * y_hat * (
                                                      1 - y_hat) * value
                         ind = ind + 1
+                error = ((y_hat - y_train.iloc[i]) ** 2) * (1 / N)
+                errors.append(error.item())
                 i = i + 1
-                errors.append(((y_hat - y_train.iloc[i]) ** 2) * (1 / N))
             self.epoch.append(errors)
 
         self.coef_ = coef_
@@ -187,10 +188,11 @@ class CustomLogisticRegression:
                         coef_[ind] = coef_[ind] - (self.l_rate * (
                                         y_hat - y_train.iloc[i]) * value) / N
                         ind = ind + 1
-                i = i + 1
-                errors.append((y_train.iloc[i] * log(y_hat) + (
+                error = (y_train.iloc[i] * log(y_hat) + (
                             (1 - y_train.iloc[i]) * log(1 - y_hat))) * (
-                                          - 1 / N))
+                                          - 1 / N)
+                errors.append(error.item())
+                i = i + 1
             self.epoch.append(errors)
 
         self.coef_ = coef_
@@ -208,7 +210,7 @@ class CustomLogisticRegression:
         return predictions
 
 
-"""Stage 4: Visualize it!
+"""Stage 4: Compare between models
 
 Description
 
@@ -254,3 +256,74 @@ Additionally, answer the following questions:
 
 """
 
+# Load the dataset
+data = load_breast_cancer(as_frame=True)
+X = data.data[['worst concave points', 'worst perimeter', 'worst radius']]
+y = data.target
+
+# Standardize X
+for feature in X.columns.tolist():
+    feature_mean = X[feature].mean()
+    feature_std = X[feature].std()
+    X.loc[:, feature] = (X.loc[:, feature] - feature_mean) / feature_std
+
+# Split the datasets to training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8,
+                                                    random_state=43)
+
+# Fit a model for each cost function method
+log_loss_model = CustomLogisticRegression(fit_intercept=True, l_rate=0.01,
+                                          n_epoch=1000)
+log_loss_model.fit_log_loss(X_train, y_train)
+mse_model = CustomLogisticRegression(fit_intercept=True, l_rate=0.01,
+                                     n_epoch=1000)
+mse_model.fit_mse(X_train, y_train)
+
+# Fit a model using sklearn
+sklearn_model = LogisticRegression(fit_intercept=True)
+sklearn_model.fit(X_train, y_train)
+
+# Determine the error values for the first and last epoch of training for
+# fit_mse and fit_log_loss methods
+mse_first_epoch_error = mse_model.epoch[0]
+mse_last_epoch_error = mse_model.epoch[-1]
+
+log_loss_first_epoch_error = log_loss_model.epoch[0]
+log_loss_last_epoch_error = log_loss_model.epoch[-1]
+
+# Predict y_hat values for the test set with all three models
+mse_y_hat = mse_model.predict (X_test)
+log_loss_y_hat = log_loss_model.predict(X_test)
+sklearn_y_hat = sklearn_model.predict(X_test)
+
+# Calculate the accuracy scores for the test set for all three models
+mse_accuracy = accuracy_score(y_test.to_numpy(), mse_y_hat)
+log_loss_accuracy = accuracy_score(y_test.to_numpy(), log_loss_y_hat)
+sklearn_accuracy = accuracy_score(y_test.to_numpy(), sklearn_y_hat)
+
+# Printing the required dictionary
+output_dict = {'mse_accuracy': mse_accuracy,
+               'logloss_accuracy': log_loss_accuracy,
+               'sklearn_accuracy': sklearn_accuracy,
+               'mse_error_first': mse_first_epoch_error,
+               'mse_error_last': mse_last_epoch_error,
+               'logloss_error_first': log_loss_first_epoch_error,
+               'logloss_error_last': log_loss_last_epoch_error}
+
+print(output_dict, end='\n\n')
+
+# Printing the answers for the questions
+
+min_mse_first = format(min(mse_first_epoch_error), '.5f')
+min_mse_last = format(min(mse_last_epoch_error), '.5f')
+max_logloss_first = format(max(log_loss_first_epoch_error), '.5f')
+max_logloss_last = format(max(log_loss_last_epoch_error), '.5f')
+
+print(f"""Answers to the questions:
+1) {min_mse_first}
+2) {min_mse_last}
+3) {max_logloss_first}
+4) {max_logloss_last}
+5) expanded
+6) expanded
+""")

@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LogisticRegression
 
 """Stage 1: Sigmoid function
 
@@ -25,11 +26,6 @@ Objectives
 2 - Create the __init__ method
 3 - Create the sigmoid method
 4 - Create the predict_proba method
-5 - Load the Breast Cancer Wisconsin dataset. Select worst concave points and 
-worst perimeter as features and target as the target variable
-6 - Standardize X
-7 - Split the dataset including the target variable into training and test sets. 
-Set train_size=0.8 and random_state=43.
 
 """
 
@@ -197,3 +193,51 @@ class CustomLogisticRegression:
         predictions[predictions >= cut_off] = 1
         predictions[predictions < cut_off] = 0
         return predictions
+
+
+"""Stage 4: Visualize it!
+
+Description
+
+In previous stages, we have successfully carried out the Stochastic gradient 
+descent on the Mean squared error and Log-loss cost functions.
+
+At this stage, we need to train three models:
+1 - Our implementation of logistic regression with the fit_mse cost function
+2 - The same logistic regression with the fit_log_loss cost function
+3 - The sklearn logistic regression algorithm
+
+Objectives
+
+1 - Load the Breast Cancer Wisconsin dataset. Select worst concave points,  
+worst perimeter, and worst radius as features and target as the target variable
+2 - Standardize X
+3 - Split the dataset including the target variable into training and test sets. 
+Set train_size=0.8 and random_state=43.
+4 - Fit a model with the training set using the fit_log_loss method
+5 - Fit a model with the training set using the fit_mse method
+6 - Import LogisticRegression from sklearn.linear_model and fit it with the 
+training set
+7 - Determine the error values during the first and the last epoch of training
+custom logistic regression for fit_mse method
+8 - Repeat the same operation for fit_log_loss method
+9 - Predict y_hat values for the test set with all three models
+10 - Calculate the accuracy scores for the test set for all models
+11 - Print the accuracy scores of all models and the errors from the first and 
+the last epochs of the training custom models as a Python dictionary.
+
+Use the following parameters for all three models:
+n_epoch = 1000 (only for the two custom models)
+fit_intercept = True
+l_rate = 0.01
+
+Additionally, answer the following questions:
+1 - What is the minimum MSE value for the first epoch?
+2 - What is the minimum MSE value for the last epoch?
+3 - What is the maximum Log-loss value for the first epoch?
+4 - What is the maximum Log-loss value for the last epoch?
+5 - Has the range of the MSE values expanded or narrowed?
+6 - Has the range of the Log-loss values expanded or narrowed?
+
+"""
+

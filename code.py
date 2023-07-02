@@ -1,6 +1,7 @@
 # Imported packages
 import numpy as np
 import pandas as pd
+from math import log
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -87,6 +88,7 @@ class CustomLogisticRegression:
         self.l_rate = l_rate
         self.n_epoch = n_epoch
         self.coef_ = None
+        self.epoch = []
 
     def sigmoid(self, t):
         """The logistic function used to transform the linear regression to
@@ -118,8 +120,12 @@ class CustomLogisticRegression:
         # Initialize the weights
         coef_ = np.zeros(count)
 
+        # Determining the number of rows
+        N = len(X_train)
+
         # Training loop
         for _ in range(self.n_epoch):
+            errors = []
             i = 0
             for _, row in X_train.iterrows():
                 y_hat = self.predict_proba(row, coef_)
@@ -142,6 +148,8 @@ class CustomLogisticRegression:
                                                      1 - y_hat) * value
                         ind = ind + 1
                 i = i + 1
+                errors.append(((y_hat - y_train.iloc[i]) ** 2) * (1 / N))
+            self.epoch.append(errors)
 
         self.coef_ = coef_
 
@@ -160,6 +168,7 @@ class CustomLogisticRegression:
 
         # Training loop
         for _ in range(self.n_epoch):
+            errors = []
             i = 0
             for _, row in X_train.iterrows():
                 y_hat = self.predict_proba(row, coef_)
@@ -179,6 +188,10 @@ class CustomLogisticRegression:
                                         y_hat - y_train.iloc[i]) * value) / N
                         ind = ind + 1
                 i = i + 1
+                errors.append((y_train.iloc[i] * log(y_hat) + (
+                            (1 - y_train.iloc[i]) * log(1 - y_hat))) * (
+                                          - 1 / N))
+            self.epoch.append(errors)
 
         self.coef_ = coef_
 
